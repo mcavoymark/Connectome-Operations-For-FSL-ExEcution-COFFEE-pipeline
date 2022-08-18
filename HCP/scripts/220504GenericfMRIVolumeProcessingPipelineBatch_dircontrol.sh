@@ -5,7 +5,8 @@
 #P0=${HCPMOD}/200917GenericfMRIVolumeProcessingPipeline_mm.sh
 #START220211
 #P0=200917GenericfMRIVolumeProcessingPipeline_mm.sh
-P0=220504GenericfMRIVolumeProcessingPipeline_mm_dircontrol.sh
+#P0=220504GenericfMRIVolumeProcessingPipeline_mm_dircontrol.sh
+P0=220814GenericfMRIVolumeProcessingPipeline_dircontrol.sh
 
 get_batch_options() {
     local arguments=("$@")

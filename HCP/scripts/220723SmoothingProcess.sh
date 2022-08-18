@@ -165,7 +165,7 @@ for((i=0;i<${#fMRITimeSeriesResults[@]};++i));do
         sigma=($(echo "scale=6; ${FWHM[j]} / 2.354820" | bc))
         declare -p sigma 
         #${FSLDIR}/bin/susan prefiltered_func_data_thresh $bt $sigma 3 1 1 mean_func $bt prefiltered_func_data_smooth
-        ${FSLDIR}/bin/susan ${sd0}/prefiltered_func_data_thresh $bt $sigma 3 1 1 mean_func $bt ${sd0}/prefiltered_func_data_smooth
+        ${FSLDIR}/bin/susan ${sd0}/prefiltered_func_data_thresh $bt $sigma 3 1 1 ${sd0}/mean_func $bt ${sd0}/prefiltered_func_data_smooth
 
         #/usr/local/fsl/bin/fslmaths prefiltered_func_data_smooth -mas mask prefiltered_func_data_smooth
         #${FSLDIR}/bin/fslmaths prefiltered_func_data_smooth -mas mask prefiltered_func_data_smooth

@@ -9,9 +9,13 @@
 #export FREESURFER_HOME=/usr/local/pkg/freesurfer53-HCP
 
 #START220715
-if [ -z ${HCPDIR+x} ];then export HCPDIR=/Users/bphilip/Documents/HCP;fi
-if [ -z ${FSLDIR+x} ];then export FSLDIR=/usr/local/fsl;fi
-if [ -z ${FREESURFER_HOME+x} ];then export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP;fi
+#if [ -z ${HCPDIR+x} ];then export HCPDIR=/Users/bphilip/Documents/HCP;fi
+#if [ -z ${FSLDIR+x} ];then export FSLDIR=/usr/local/fsl;fi
+#if [ -z ${FREESURFER_HOME+x} ];then export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP;fi
+#START220803
+[ -z ${HCPDIR+x} ] && export HCPDIR=/Users/bphilip/Documents/HCP
+[ -z ${FSLDIR+x} ] && export FSLDIR=/usr/local/fsl
+[ -z ${FREESURFER_HOME+x} ] && export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP
 
 
 #echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
