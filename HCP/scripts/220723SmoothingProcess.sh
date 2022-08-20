@@ -138,7 +138,7 @@ for((i=0;i<${#fMRITimeSeriesResults[@]};++i));do
     thr=($(echo "scale=6; ${p98[1]} / 10" | bc))
     declare -p thr
     #${FSLDIR}/bin/fslmaths prefiltered_func_data_bet -thr $thr -Tmin -bin mask -odt char
-    ${FSLDIR}/bin/fslmaths ${sd0}/prefiltered_func_data_bet -thr $thr -Tmin -bin mask -odt char
+    ${FSLDIR}/bin/fslmaths ${sd0}/prefiltered_func_data_bet -thr $thr -Tmin -bin ${sd0}/mask -odt char
 
     ##/usr/local/fsl/bin/fslstats prefiltered_func_data_unwarp -k mask -p 50
     #p50=($(${FSLDIR}/bin/fslstats $prefiltered_func_data_unwarp -k mask -p 50))
