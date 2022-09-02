@@ -8,7 +8,8 @@
 #P0=220224FreeSurferPipeline_editFS.sh
 #START220308
 #P0=220308FreeSurferPipeline_editFS.sh
-P0=220812FreeSurferPipeline_editFS.sh
+#P0=220812FreeSurferPipeline_editFS.sh
+P0=220901FreeSurferPipeline_editFS.sh
 
 echo "Running $0"
 
@@ -188,12 +189,14 @@ for Subject in $Subjlist ; do
 
 
   #START200220
-  if [ -z "${cls_FSeditDIR}" ];then
-      cls_FSeditDIR=$SubjectDIR
-  fi
-  if [ -z "${cls_FSeditSUB}" ];then
-      cls_FSeditSUB=$Subject
-  fi
+  #if [ -z "${cls_FSeditDIR}" ];then
+  #    cls_FSeditDIR=$SubjectDIR
+  #fi
+  [ -z "${cls_FSeditDIR}" ] && cls_FSeditDIR=$SubjectDIR
+  #if [ -z "${cls_FSeditSUB}" ];then
+  #    cls_FSeditSUB=$Subject
+  #fi
+  [ -z "${cls_FSeditSUB}" ] && cls_FSeditSUB=$Subject
 
   #${queuing_command} ${HCPPIPEDIR}/FreeSurfer/FreeSurferPipeline.sh \
   #    --subject="$Subject" \
