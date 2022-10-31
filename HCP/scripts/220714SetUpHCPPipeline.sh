@@ -15,7 +15,23 @@
 #START220803
 [ -z ${HCPDIR+x} ] && export HCPDIR=/Users/bphilip/Documents/HCP
 [ -z ${FSLDIR+x} ] && export FSLDIR=/usr/local/fsl
-[ -z ${FREESURFER_HOME+x} ] && export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP
+
+##[ -z ${FREESURFER_HOME+x} ] && export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP
+##START220911
+#if [ -z ${FREESURFER_HOME+x} ];then
+#    echo "FREESURFER_HOME not set. Setting to FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP"
+#    export FREESURFER_HOME=/Applications/freesurfer/5.3.0-HCP
+#else
+#    echo "FREESURFER_HOME=$FREESURFER_HOME"
+#fi
+#START221026
+[ -z ${FREESURFDIR+x} ] && export FREESURFDIR=/Applications/freesurfer
+if [ -z ${FREESURFER_HOME+x} ];then
+    echo "FREESURFER_HOME not set. Setting to FREESURFER_HOME=${FREESURFDIR}/5.3.0-HCP"
+    export FREESURFER_HOME=${FREESURFDIR}/5.3.0-HCP
+fi
+echo "FREESURFER_HOME=$FREESURFER_HOME"
+
 
 
 #echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
