@@ -1,11 +1,11 @@
-#!/usr/local/bin/python3.10
+#!/usr/bin/env python3
 
 text='Convert *scanlist.csv to *.dat. Multiple *scanlist.csv for a single subject are ok. Each subject is demarcated by -s|--sub.'
 print(text)
 
 import argparse
 parser=argparse.ArgumentParser(description=text,formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument('-s','--sub',action='append',nargs='+',help='Input scanlist.csv(s). Each subject is written to its own file (eg 10_1002.dat and 10_2002.dat). Ex. -s 10_1002_scanlist.csv -s 10_2002a_scanlist.csv 10_2002b_scanlist.csv')
+parser.add_argument('-s','--sub',action='append',nargs='+',help='Input scanlist.csv(s). Each subject is written to its own file (eg 10_1002.dat and 10_2002.dat).\nEx. -s 10_1002_scanlist.csv -s 10_2002a_scanlist.csv 10_2002b_scanlist.csv')
 parser.add_argument('-a','--all',help='Write all subjects to a single file. Individual files are still written.')
 parser.add_argument('-o','--out',help='Write all subjects to a single file. Individual files are not written.')
 args=parser.parse_args()
@@ -36,7 +36,7 @@ if args.all or args.out:
 
 
 for i in args.sub:
-    print(f'i={i}') 
+    #print(f'i={i}') 
 
     d0={"SUBNAME":"NONE",
         "OUTDIR":"NONE",
@@ -65,7 +65,7 @@ for i in args.sub:
 
    
     n0=pathlib.Path(i[0]).stem
-    print(f'here0 n0={n0}')
+    #print(f'here0 n0={n0}')
 
     #m=re.match('([0-9_]+?)[a-zA-Z]_scanlist|([0-9_]+?)[a-zA-Z]',n0)
     m=re.match('([0-9_]+?)[a-zA-Z]_scanlist|([0-9_]+?)_scanlist|([0-9_]+?)[a-zA-Z]',n0)
@@ -75,9 +75,9 @@ for i in args.sub:
     ext='.dat'
     if pathlib.Path(i[0]).suffix=='.dat':ext+=ext
     n0=pathlib.Path(i[0]).with_name(n0+ext)
-    print(f'here1 n0={n0}')
+    #print(f'here1 n0={n0}')
     p0=pathlib.Path(i[0]).parent
-    print(f'here2 p0={p0}')
+    #print(f'here2 p0={p0}')
 
     d0['SUBNAME']=subname
     d0['OUTDIR']=str(p0)+'/pipeline'

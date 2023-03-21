@@ -1,0 +1,311 @@
+#!/usr/bin/env bash
+#!/usr/local/bin/bash
+
+function join_by {
+  local d=${1-} f=${2-}
+  if shift 2; then
+    printf %s "$f" "${@/#/$d}"
+  fi
+}
+
+#Hard coded location of HCP scripts
+[ -z ${HCPDIR+x} ] && HCPDIR=/Users/Shared/pipeline/HCP
+
+#Hard coded location of freesurfer installations
+[ -z ${FREESURFDIR+x} ] && FREESURFDIR=/Applications/freesurfer
+
+#Hard coded freesurfer version options: 5.3.0-HCP 7.2.0 7.3.2 
+#freesurferVersion=7.3.2
+#START230319
+[ -z ${FREESURFVER+x} ] && FREESURFVER=7.3.2
+
+#Hard coded HCP batch scripts
+pre0=220504PreFreeSurferPipelineBatch_dircontrol.sh
+free0=221027FreeSurferPipelineBatch_editFS_dircontrol.sh
+post0=220523PostFreeSurferPipelineBatch_dircontrol.sh
+
+#Hard coded pipeline settings
+#setup0=221203SetUpHCPPipeline.sh
+#START230319
+setup0=230319SetUpHCPPipeline.sh
+
+#Resolution. options: 1, 0.7 or 0.8
+Hires=1
+
+helpmsg(){
+    echo "$0"
+    echo "    -d | --dat               dat file"
+    echo "    -b | --batchscript       Optional. Instead of immediate execution, scripts are collected in the executable batchscript."
+    echo "                             If the number of subjects to be run exceeds the number of cores, then this option should be considered."
+    echo "                             Also good for debugging because the script is not executed."
+    echo "    -H | --HCPDIR            HCP directory. Optional if set at the top of this script or elsewhere."
+
+    #echo "    -F | --freesurferVersion 5.3.0-HCP, 7.2.0 or 7.3.2. Default is 7.3.2."
+    #START230319
+    echo "    -F --FREESURFVER -FREESURFVER"
+    echo "        5.3.0-HCP, 7.2.0 or 7.3.2. Default is 7.3.2 unless set elsewhere."
+
+    echo "    -m | --HOSTNAME          Flag. Use machine name instead of user named file."
+    echo "    -D | --DATE              Flag. Add date to name of output script."
+    echo "    -r | --hires             Resolution. Should match that for the sturctural pipeline. options : 0.7, 0.8 or 1mm. Default is 1mm."
+    echo "    -h | --help              Echo this help message."
+    exit
+    }
+if((${#@}<2));then
+    helpmsg
+    exit
+fi
+dat=;bs=;lchostname=0;lcdate=0
+echo $0 $@
+arg=($@)
+for((i=0;i<${#@};++i));do
+    #echo "i=$i ${arg[i]}"
+    case "${arg[i]}" in
+        -d | --dat)
+            dat=${arg[((++i))]}
+            echo "dat=$dat"
+            ;;
+        -b | --batchscript)
+            bs=${arg[((++i))]}
+            echo "bs=$bs"
+            ;;
+        -H | --HCPDIR)
+            HCPDIR=${arg[((++i))]}
+            echo "HCPDIR=$HCPDIR"
+            ;;
+
+        #-F | --freesurferVersion)
+        #    freesurferVersion=${arg[((++i))]}
+        #    echo "freesurferVersion=$freesurferVersion"
+        #    ;;
+        #START230319
+        -F | --FREESURFVER | -FREESURFVER)
+            FREESURFVER=${arg[((++i))]}
+            echo "FREESURFVER=$FREESURFVER"
+            ;;
+
+        -m | --HOSTNAME)
+            lchostname=1
+            echo "lchostname=$lchostname"
+            ;;
+        -D | --DATE)
+            lcdate=1
+            echo "lcdate=$lcdate"
+            ;;
+        -r | --hires)
+            Hires=${arg[((++i))]}
+            echo "Hires=$Hires"
+            ;;
+        -h | --help)
+            helpmsg
+            exit
+            ;;
+        *) echo "Unexpected option: ${arg[i]}"
+            exit
+            ;;
+    esac
+done
+if [ -z "${dat}" ];then
+    echo "Need to specify -d | --dat"
+    exit
+fi
+
+
+#START230303
+#if [ -z "${bs}" ];then
+#    echo "Need to specify -b | --batchscript"
+#    exit
+#fi
+
+
+PRE=${HCPDIR}/scripts/${pre0}
+FREE=${HCPDIR}/scripts/${free0}
+POST=${HCPDIR}/scripts/${post0}
+ES=${HCPDIR}/scripts/${setup0}
+
+IFS=$'\n\r' read -d '' -ra csv < $dat
+
+
+#START230303
+if [ -z "${bs}" ];then
+    num_sub=0
+    for((i=0;i<${#csv[@]};++i));do
+        IFS=$',\n\r ' read -ra line <<< ${csv[i]}
+        if [[ "${line[0]:0:1}" = "#" ]];then
+            echo "Skiping line $((i+1))"
+            continue
+        fi
+        ((num_sub++))
+    done
+    num_cores=$(sysctl -n hw.ncpu)
+    ((num_sub>num_cores)) && echo "${num_sub} will be run, however $(hostname) only has ${num_cores}. Please consider -b | --batchscript."
+fi    
+
+
+#lcsinglereconall=0;lctworeconall=0
+#if [[ "${freesurferVersion}" != "5.3.0-HCP" && "${freesurferVersion}" != "7.2.0" && "${freesurferVersion}" != "7.3.2" ]];then
+#    echo "Unknown version of freesurfer. freesurferVersion=${freesurferVersion}"
+#    exit
+#fi
+#[[ "${freesurferVersion}" = "7.2.0" || "${freesurferVersion}" = "7.3.2" ]] && lctworeconall=1
+#START230319
+lcsinglereconall=0;lctworeconall=0
+if [[ "${FREESURFVER}" != "5.3.0-HCP" && "${FREESURFVER}" != "7.2.0" && "${FREESURFVER}" != "7.3.2" ]];then
+    echo "Unknown version of freesurfer. FREESURFVER=${FREESURFVER}"
+    exit
+fi
+[[ "${FREESURFVER}" = "7.2.0" || "${FREESURFVER}" = "7.3.2" ]] && lctworeconall=1
+
+
+if [ -n "${bs}" ];then
+    bs0=${bs%/*}
+    mkdir -p ${bs0}
+    #echo -e "#!/bin/bash\n" > $bs
+    echo -e "#!/usr/bin/env bash\n" > $bs
+    #echo -e "#!/usr/local/bin/bash\n" > $bs
+fi
+wd0=$(pwd) 
+
+for((i=0;i<${#csv[@]};++i));do
+    IFS=$',\n\r ' read -ra line <<< ${csv[i]}
+    if [[ "${line[0]:0:1}" = "#" ]];then
+        echo "Skiping line $((i+1))"
+        continue
+    fi
+
+    echo ${line[0]}
+
+    T1f=${line[2]}
+    if [[ "${T1f}" = "NONE" || "${T1f}" = "NOTUSEABLE" ]];then
+        echo "    T1 ${T1f}"
+        continue
+    fi
+    if [ ! -f "$T1f" ];then
+        echo "    T1 ${T1f} not found"
+        continue
+    fi
+    echo "    T1 ${T1f}"
+
+    T2f=;T20=${line[3]}
+    if [[ "${T20}" = "NONE" || "${T20}" = "NOTUSEABLE" ]];then
+        echo "    T2 ${T20}"
+    elif [ ! -f "${T20}" ];then
+        echo "    T2 ${T20} not found"
+    else
+        T2f=${T20}
+        echo "    T2 ${T2f}"
+    fi
+
+    #dir0=${line[1]}${freesurferVersion}
+    #START230319
+    dir0=${line[1]}${FREESURFVER}
+
+
+    mkdir -p ${dir0}
+
+    if((lchostname==0));then
+        IFS=$'/' read -ra line2 <<< ${line[1]}
+        #echo "line2=${line2[@]}"
+        sub0=${line2[-2]}
+        #echo "sub0=${sub0}"
+    fi
+
+
+    #if((lcdate==0));then
+    #    F0=${dir0}/${line[0]////_}_hcp3.27struct.sh
+    #else
+    #    F0=${dir0}/${line[0]////_}_hcp3.27struct_$(date +%y%m%d%H%M%S).sh
+    #fi
+    #echo "    ${F0}"
+    #START230303
+    #((lcdate==0)) && F1=${line[0]////_}_hcp3.27struct.sh || F1=${line[0]////_}_hcp3.27struct_$(date +%y%m%d%H%M%S).sh
+    #F0=${dir0}/${F1}
+    #((lcdate==0)) && F0=${dir0}/${line[0]////_}_hcp3.27struct.sh || F0=${dir0}/${line[0]////_}_hcp3.27struct_$(date +%y%m%d%H%M%S).sh 
+    ((lcdate==0)) && F0=${dir0}/${line[0]////_}_hcp3.27struct.sh || F0=${dir0}/${line[0]////_}_hcp3.27struct_$(date +%y%m%d).sh 
+    [ -n "${bs}" ] && echo "    ${F0}"
+    
+
+    #echo -e "#!/bin/bash\n" > ${F0}
+    echo -e "#!/usr/bin/env bash\n" > ${F0} 
+    #echo -e "#!/usr/local/bin/bash\n" > ${F0} 
+
+    #echo "freesurferVersion=${freesurferVersion}" >> ${F0}
+    #echo -e export FREESURFER_HOME=${FREESURFDIR}/'${freesurferVersion}'"\n" >> ${F0}
+    #START230319
+    echo "FREESURFVER=${FREESURFVER}" >> ${F0}
+    echo -e export FREESURFER_HOME=${FREESURFDIR}/'${FREESURFVER}'"\n" >> ${F0}
+
+    echo 'PRE='${PRE} >> ${F0}
+    echo 'FREE='${FREE} >> ${F0}
+    echo 'POST='${POST} >> ${F0}
+    echo -e "ES=${ES}\n" >> ${F0}
+
+
+    #echo "sf0=${line[1]}"'${freesurferVersion}' >> ${F0}
+    #START230319
+    echo "sf0=${line[1]}"'${FREESURFVER}' >> ${F0}
+
+    if((lchostname==1));then
+        echo 's0=$(hostname)' >> ${F0}
+    else
+        echo "s0=${sub0}" >> ${F0}
+    fi
+    echo -e "Hires=${Hires}\n" >> ${F0}
+
+    echo '${PRE} \' >> ${F0}
+    echo '    --StudyFolder=${sf0} \' >> ${F0}
+    echo '    --Subject=${s0} \' >> ${F0}
+    echo '    --runlocal \' >> ${F0}
+    echo '    --T1='${T1f}' \' >> ${F0}
+    echo '    --T2='${T2f}' \' >> ${F0}
+    echo '    --GREfieldmapMag="NONE" \' >> ${F0}
+    echo '    --GREfieldmapPhase="NONE" \' >> ${F0}
+    echo '    --EnvironmentScript=${ES} \' >> ${F0}
+    echo '    --Hires=${Hires} \' >> ${F0}
+    echo -e '    --EnvironmentScript=${ES}\n' >> ${F0}
+
+    echo '${FREE} \' >> ${F0}
+    echo '    --StudyFolder=${sf0} \' >> ${F0}
+    echo '    --Subject=${s0} \' >> ${F0}
+    echo '    --runlocal \' >> ${F0}
+    echo '    --Hires=${Hires} \' >> ${F0}
+
+    #echo '    --freesurferVersion=${freesurferVersion} \' >> ${F0}
+    #START230319
+    echo '    --freesurferVersion=${FREESURFVER} \' >> ${F0}
+
+    ((lcsinglereconall)) && echo '    --singlereconall \' >> ${F0}
+    ((lctworeconall)) && echo '    --tworeconall \' >> ${F0}
+    echo -e '    --EnvironmentScript=${ES}\n' >> ${F0}
+
+    echo '${POST} \' >> ${F0}
+    echo '    --StudyFolder=${sf0} \' >> ${F0}
+    echo '    --Subject=${s0} \' >> ${F0}
+    echo '    --runlocal \' >> ${F0}
+    echo '    --EnvironmentScript=${ES}' >> ${F0}
+
+    chmod +x ${F0}
+
+
+    #echo "${F0} > ${F0}.txt 2>&1 &" >> $bs
+    #START230303
+    if [ -n "${bs}" ];then
+        echo "${F0} > ${F0}.txt 2>&1 &" >> $bs
+    else
+        cd ${dir0}
+        #${F1} > ${F1}.txt 2>&1 &     
+        ${F0} > ${F0}.txt 2>&1 &
+        cd ${wd0} #"cd -" echoes the path 
+        echo "    ${F0} has been executed"
+    fi
+
+
+done
+
+#chmod +x $bs
+#echo "Output written to $bs"
+#START230303
+if [ -n "${bs}" ];then
+    chmod +x $bs
+    echo "Output written to $bs"
+fi
