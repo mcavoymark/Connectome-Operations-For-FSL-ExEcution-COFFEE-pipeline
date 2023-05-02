@@ -340,6 +340,7 @@ for((i=0;i<${#csv[@]};++i));do
         ((lcdate==0)) && F0[1]=${dir0}/${line[0]////_}_makeregdir.sh || F0[1]=${dir0}/${line[0]////_}_makeregdir_${date0}.sh
     fi
 
+    #echo "here0 #F0[@]=${#F0[@]}"
     for((j=0;j<${#F0[@]};++j));do
         echo -e "$shebang\n" > ${F0[j]} 
         echo -e "#$0 $@\n" >> ${F0[j]}
@@ -440,6 +441,9 @@ for((i=0;i<${#csv[@]};++i));do
         fi
         echo "" >> ${F0[0]}
 
+        #START230502
+        lcbadFM=0;lcjsonNOTFOUND=0
+
         if((lcsmoothonly==0)) && ((lccleanonly==0)) && ((lct1copymaskonly==0));then
             echo '${P0} \' >> ${F0[0]}
             echo '    --StudyFolder=${sf0} \' >> ${F0[0]}
@@ -473,20 +477,39 @@ for((i=0;i<${#csv[@]};++i));do
                     if [ ! -f $json ];then
                         echo "    $json not found"
                         rm -f ${F0[0]}
+
+                        #START230502
+                        lcjsonNOTFOUND=1
+
                         continue
                     fi
                     IFS=$' ,' read -ra line0 < <( grep PhaseEncodingDirection $json )
                     IFS=$'"' read -ra line1 <<< ${line0[1]}
                     PED[j]=${line1[1]}
                 done
-                lcbadFM=0
-                for((j=4;j<5;j+=2));do
-                    if [[ "${PED[j]}" = "${PED[j+1]}" ]];then
-                        echo "ERROR: ${line[j]} ${PED[j]}, ${line[j+1]} ${PED[j+1]}. Fieldmap phases should be opposite."
-                        lcbadFM=1 
-                    fi
-                done
-                if((lcbadFM==0));then
+
+
+                #for((j=4;j<5;j+=2));do
+                #    if [[ "${PED[j]}" = "${PED[j+1]}" ]];then
+                #        echo "ERROR: ${line[j]} ${PED[j]}, ${line[j+1]} ${PED[j+1]}. Fieldmap phases should be opposite."
+                #        lcbadFM=1 
+                #    fi
+                #done
+                #START230502
+                if((lcjsonNOTFOUND==0));then
+                    for((j=4;j<5;j+=2));do
+                        if [[ "${PED[j]}" = "${PED[j+1]}" ]];then
+                            echo "ERROR: ${line[j]} ${PED[j]}, ${line[j+1]} ${PED[j+1]}. Fieldmap phases should be opposite."
+                            lcbadFM=1 
+                        fi
+                    done
+                fi
+
+
+                #if((lcbadFM==0));then
+                #START230502
+                if((lcjsonNOTFOUND==0)) && ((lcbadFM==0));then
+
                     for((j=4;j<=5;j++));do
                         if [[ "${PED[j]}" == "j-" ]];then
                             echo '    --SpinEchoPhaseEncodeNegative="\' >> ${F0[0]}
@@ -510,10 +533,21 @@ for((i=0;i<${#csv[@]};++i));do
                     done
                 fi
             fi
-            echo '    --freesurferVersion=${FREESURFVER} \' >> ${F0[0]}
-            echo -e '    --EnvironmentScript=${ES}\n' >> ${F0[0]}
+
+            #echo '    --freesurferVersion=${FREESURFVER} \' >> ${F0[0]}
+            #echo -e '    --EnvironmentScript=${ES}\n' >> ${F0[0]}
+            #START230502
+            if((lcjsonNOTFOUND==0)) && ((lcbadFM==0));then
+                echo '    --freesurferVersion=${FREESURFVER} \' >> ${F0[0]}
+                echo -e '    --EnvironmentScript=${ES}\n' >> ${F0[0]}
+            fi
+
         fi
-        if((lcsmoothonly==0)) && ((lccleanonly==0));then
+
+        #if((lcsmoothonly==0)) && ((lccleanonly==0));then
+        #START230502
+        if((lcsmoothonly==0)) && ((lccleanonly==0)) && ((lcjsonNOTFOUND==0)) && ((lcbadFM==0));then
+
             echo '${P1} \' >> ${F0[0]}
             for((j=7;j<=23;j+=2));do
                 if((bold[j]==1));then
@@ -528,7 +562,10 @@ for((i=0;i<${#csv[@]};++i));do
             done
         fi
 
-        if((lct1copymaskonly==0)) && ((lccleanonly==0));then
+        #if((lct1copymaskonly==0)) && ((lccleanonly==0));then
+        #START230502
+        if((lct1copymaskonly==0)) && ((lccleanonly==0)) && ((lcjsonNOTFOUND==0)) && ((lcbadFM==0));then
+
             declare -a endquote0
             for((j=17;j>=7;j-=2));do
                 if [ "${line[j]}" != "NONE" ] && [ "${line[j]}" != "NOTUSEABLE" ];then
@@ -608,28 +645,27 @@ for((i=0;i<${#csv[@]};++i));do
     fi
 
 
+    #echo "${F0[0]} > ${F0[0]}.txt 2>&1 &" >> ${F1}
     #for((j=0;j<${#F0[@]};++j));do
     #    chmod +x ${F0[j]}
     #    echo "    Output written to ${F0[j]}"
     #done
-    #if [ -n "${bs}" ];then
-    #    echo "${F0[0]} > ${F0[0]}.txt 2>&1 &" >> $bs
-    #else
-    #    if((lcmakeregdironly==0));then
-    #        cd ${dir0}
-    #        ${F0[0]} > ${F0[0]}.txt 2>&1 &
-    #        cd ${wd0} #"cd -" echoes the path
-    #        echo "    ${F0[0]} has been executed"
-    #    fi
-    #fi
-    #START230405
-    echo "${F0[0]} > ${F0[0]}.txt 2>&1 &" >> ${F1}
-    for((j=0;j<${#F0[@]};++j));do
-        chmod +x ${F0[j]}
-        echo "    Output written to ${F0[j]}"
-    done
-    chmod +x ${F1}
-    echo "    Output written to ${F1}"
+    #chmod +x ${F1}
+    #echo "    Output written to ${F1}"
+    #START230502
+    if [ -f "${F0[0]}" ];then
+        echo "${F0[0]} > ${F0[0]}.txt 2>&1 &" >> ${F1}
+        for((j=0;j<${#F0[@]};++j));do
+            chmod +x ${F0[j]}
+            echo "    Output written to ${F0[j]}"
+        done
+        chmod +x ${F1}
+        echo "    Output written to ${F1}"
+    else
+        rm -f ${F1}
+    fi
+
+
     if [ -n "${bs}" ];then
         echo "cd ${dir0}" >> $bs
         echo -e "${F0[0]} > ${F0[0]}.txt 2>&1 &\n" >> $bs
