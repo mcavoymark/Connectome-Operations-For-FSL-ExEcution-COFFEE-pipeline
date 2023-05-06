@@ -85,7 +85,7 @@ if((${#@}<1));then
 fi
 echo $0 $@
 
-lcautorun=0;bs=;lchostname=0;lcdate=0;fwhm=;paradigm_hp_sec=;lct1copymaskonly=0;lcsmoothonly=0;lccleanonly=0;lcclean=0;fsf1=;fsf2=;lcmakeregdironly=0 #do not set dat;unexpected
+lcautorun=0;bs=;lchostname=0;lcdate=0;fwhm=;paradigm_hp_sec=;lct1copymaskonly=0;lcsmoothonly=0;lccleanonly=0;lcclean=0;fsf1=;fsf2=;lcmakeregdironly=0 #do not set dat or unexpected
 
 arg=("$@")
 for((i=0;i<${#@};++i));do
@@ -101,7 +101,7 @@ for((i=0;i<${#@};++i));do
             ;;
         -A | --autorun | -autorun | --AUTORUN | -AUTORUN)
             lcautorun=1
-            echo "lcautonrun=$lcautonrun"
+            echo "lcautorun=$lcautorun"
             ;;
         -b | --batchScript | -batchscript)
             bs=${arg[((++i))]}

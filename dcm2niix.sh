@@ -85,7 +85,7 @@ for((i=0;i<${#@};++i));do
             ;;
         --Aoff | -Aoff | --autorunoff | -autorunoff | --AUTORUNOFF | -AUTORUNOFF)
             lcautorun=0
-            #echo "lcautonrun=$lcautonrun"
+            #echo "lcautorun=$lcautorun"
             ;;
         -h | --help | -help)
             helpmsg

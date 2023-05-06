@@ -79,7 +79,7 @@ for((i=0;i<${#@};++i));do
             ;;
         -A | --autorun | -autorun | --AUTORUN | -AUTORUN)
             lcautorun=1
-            echo "lcautonrun=$lcautonrun"
+            echo "lcautorun=$lcautorun"
             ;;
         -b | --batchscript | -batchscript)
             bs=${arg[((++i))]}
