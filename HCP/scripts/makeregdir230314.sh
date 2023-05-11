@@ -46,14 +46,11 @@ arg=($@)
 narg=${#@}
 
 SUBNAME=;RUNNAME=;ANALYSISNAME=;idx=0;T1HIGHRESHEAD=;T1HIGHRES=;STANDARDHEAD=;STANDARD=
-#START230314
-#SUBNAME=;RUNNAME=;ANALYSISNAME=;T1HIGHRESHEAD=;T1HIGHRES=;STANDARDHEAD=;STANDARD=;unused=
 
 if((${#@}<2));then
     helpmsg
     exit
 fi
-#j=0
 for((i=0;i<${#@};++i));do
     case "${arg[i]}" in
         -s | --sub | -sub)
@@ -70,7 +67,7 @@ for((i=0;i<${#@};++i));do
             ANALYSISNAME=${arg[((++i))]}
             echo "ANALYSISNAME=$ANALYSISNAME"
             ;;
-        -s | --study | -study)
+        -S | --study | -study)
             STUDYPATH=${arg[((++i))]}
             echo "STUDYPATH=$STUDYPATH"
             ((narg-=2))
@@ -120,9 +117,8 @@ for((i=0;i<${#@};++i));do
         #    exit
         #    ;;
 
-        esac
-    done
-fi
+    esac
+done
 
 if [ -z "${SUBNAME}" ];then
     SUBNAME=$1
@@ -139,16 +135,28 @@ if [ -z "${RUNNAME}" ];then
         exit
     fi
 fi
+
+
+#if [ -z "${ANALYSISNAME}" ];then
+#    ((${narg}>=((idx+1)))) && ANALYSISNAME=${RUNNAME}_${arg[idx]} || ANALYSISNAME=${RUNNAME}
+#    echo "ANALYSISNAME=$ANALYSISNAME"
+#fi
+#START230510
 if [ -z "${ANALYSISNAME}" ];then
     ((${narg}>=((idx+1)))) && ANALYSISNAME=${RUNNAME}_${arg[idx]} || ANALYSISNAME=${RUNNAME}
+    runanal=$ANALYSISNAME
     echo "ANALYSISNAME=$ANALYSISNAME"
+else
+    runanal=${RUNNAME}_${ANALYSISNAME}
 fi
-
-
 
 SUBJDIR=${STUDYPATH}/${SUBNAME}/${PIPE}
 echo "SUBJDIR=$SUBJDIR"
-FEATDIR=${SUBJDIR}/model/${ANALYSISNAME}.feat
+
+#FEATDIR=${SUBJDIR}/model/${ANALYSISNAME}.feat
+#START230510
+FEATDIR=${SUBJDIR}/model/${runanal}.feat
+
 echo "FEATDIR=${FEATDIR}"
 OUTDIR=${FEATDIR}/reg
 echo "OUTDIR=${OUTDIR}"
@@ -156,7 +164,7 @@ echo "OUTDIR=${OUTDIR}"
 if [ -z "${T1HIGHRESHEAD}" ];then
     if((T1==1));then
         T1HIGHRESHEAD=${SUBJDIR}/MNINonLinear/T1w_restore.nii.gz
-    elif((T1==2);then
+    elif((T1==2));then
         T1HIGHRESHEAD=${SUBJDIR}/MNINonLinear/Results/T1w_restore.2.nii.gz
     else
         echo "Unknown value for T1=${T1}"
@@ -166,7 +174,7 @@ fi
 if [ -z "${T1HIGHRES}" ];then
     if((T1==1));then
         T1HIGHRES=${SUBJDIR}/MNINonLinear/T1w_restore_brain.nii.gz
-    elif((T1==2);then
+    elif((T1==2));then
         T1HIGHRES=${SUBJDIR}/MNINonLinear/Results/T1w_restore_brain.2.nii.gz
     else
         echo "Unknown value for T1=${T1}"
@@ -176,7 +184,7 @@ fi
 if [ -z "${STANDARDHEAD}" ];then
     if((ATLAS==1));then
         STANDARDHEAD=${FSLDIR}/data/standard/MNI152_T1_1mm.nii.gz
-    elif((ATLAS==2);then
+    elif((ATLAS==2));then
         STANDARDHEAD=${FSLDIR}/data/standard/MNI152_T1_2mm.nii.gz
     else
         echo "Unknown value for ATLAS=${ATLAS}"
@@ -186,7 +194,7 @@ fi
 if [ -z "${STANDARD}" ];then
     if((ATLAS==1));then
         STANDARD=${FSLDIR}/data/standard/MNI152_T1_1mm_brain.nii.gz
-    elif((ATLAS==2);then
+    elif((ATLAS==2));then
         STANDARD=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz
     else
         echo "Unknown value for ATLAS=${ATLAS}"
@@ -209,17 +217,17 @@ fi
 
 mkdir -p ${OUTDIR}
 
-#cp -p ${FEATDIR}/example_func.nii.gz ${OUTDIR}/example_func.nii.gz
-#cp ${FSLDIR}/data/standard/MNI152_T1_2mm.nii.gz ${OUTDIR}/standard_head.nii.gz
-#cp ${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz ${OUTDIR}/standard.nii.gz
-#cp -p ${SUBJDIR}/MNINonLinear/T1w_restore.nii.gz ${OUTDIR}/highres_head.nii.gz 
-#cp -p ${SUBJDIR}/MNINonLinear/T1w_restore_brain.nii.gz ${OUTDIR}/highres.nii.gz 
-#START230311
+#START220510
+if [ ! -f ${FEATDIR}/example_func.nii.gz ];then
+    echo "ERROR: ${FEATDIR}/example_func.nii.gz does not exist. Abort!"
+    exit
+fi
 cp -p ${FEATDIR}/example_func.nii.gz ${OUTDIR}/example_func.nii.gz
+
 cp $STANDARDHEAD ${OUTDIR}/standard_head.nii.gz
 cp $STANDARD ${OUTDIR}/standard.nii.gz
-cp -p $HIGHRESHEAD ${OUTDIR}/highres_head.nii.gz 
-cp -p $HIGHRES ${OUTDIR}/highres.nii.gz 
+cp -p $T1HIGHRESHEAD ${OUTDIR}/highres_head.nii.gz 
+cp -p $T1HIGHRES ${OUTDIR}/highres.nii.gz 
 
 ##cp -p ${SUBJDIR}/MNINonLinear/Results/${RUNNAME}/example_func2standard_susan4.mat ${OUTDIR}/example_func2standard.mat
 ##cp -p ${SUBJDIR}/MNINonLinear/Results/${RUNNAME}/highres2standard.mat ${OUTDIR}/highres2standard.mat
