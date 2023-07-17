@@ -38,7 +38,7 @@ helpmsg(){
     echo "    -b --batchscript -batchscript"
     echo "        Name of output script. Default is /STUDYPATH/SUBJDIR/SUBJDIR_dcm2niix.sh."
     echo "    --Aoff -Aoff --autorunoff -autorunoff --AUTORUNOFF -AUTORUNOFF"
-    echo "        Flag. Do not automatically execute script. Default is to execute. When not executed, *_autorun.sh is created with output redirect."
+    echo "        Flag. Do not automatically execute script. Default is to execute. When not executed, *_fileout.sh is created with output redirect."
     echo "    -h --help -help"
     echo "        Echo this help message."
     exit
@@ -129,7 +129,7 @@ for((i=0;i<${#dat[@]};++i));do
         bs=${dir0}/${subj}_dcm2niix.sh
 
         #START230309
-        F1=${dir0}/${subj}_dcm2niix_autorun.sh
+        F1=${dir0}/${subj}_dcm2niix_fileout.sh
     fi
     dirbs=${bs%/*}
     mkdir -p $dirbs
