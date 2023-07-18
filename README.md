@@ -1,6 +1,6 @@
 # Connectome Operations For FSL ExEcution (COFFEE) Pipeline  
 
-Ben Philip in Occupational Therapy at Washington University expressed interest in putting together a processing pipeline for his data.  He needed it to work on Mac and it needed to be compatible with the FSL GUI for modeling and analysis.  
+Ben Philip in Occupational Therapy at Washington University expressed an interest in putting together a processing pipeline for his data.  He needed it to work on Mac and it needed to be compatible with the FSL GUI for modeling and analysis.  
 
 In the HCP/scripts directory are a number of bash programs that are modified versions of the HCP originals. Install the stock HCP v3.27 minimal processing pipeline (https://github.com/Washington-University/HCPpipelines/tree/v3.27.0) and insert the "scripts" directory.  The set-up script for the functional pipeline (ie COFFEEfMRIpipeSETUP.sh) checks the phase encoding direction of the SBref's and field maps to ensure compatibility with the BOLD file.  
 
